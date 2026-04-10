@@ -9,7 +9,7 @@ down:
 
 # Load Testing commands
 load-test:
-	go run ../scripts/loadtest.go -mode=single -url=http://localhost:8000
+	go run ./loadtest.go -mode=single -url=http://localhost:8000
 
 load-test-bulk:
-	go run ../scripts/loadtest.go -mode=bulk -url=http://localhost:8000
+	go run ./loadtest.go -mode=bulk -url=http://localhost:8000

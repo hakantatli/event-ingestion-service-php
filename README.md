@@ -32,5 +32,5 @@ curl -X POST http://localhost:8000/events \
 
 ### 3. Load Testing
 A native Go script exists for hammering both synchronous and asynchronous buffering endpoints automatically:
-* **Single Mode (Redis Buffering):** `go run ../scripts/loadtest.go -mode=single -url=http://localhost:8000`
-* **Bulk Mode (Direct ClickHouse Async):** `go run ../scripts/loadtest.go -mode=bulk -url=http://localhost:8000`
+* **Single Mode (Redis Buffering):** `go run ./loadtest.go -mode=single -url=http://localhost:8000`
+* **Bulk Mode (Direct ClickHouse Async):** `go run ./loadtest.go -mode=bulk -url=http://localhost:8000`
