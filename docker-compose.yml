@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  php-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: laravel-event-ingestion-api
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_ENV=local
+      - APP_KEY=${APP_KEY}
+      - APP_DEBUG=true
+      - DB_CONNECTION=sqlite
+      - OCTANE_SERVER=frankenphp
+      - OCTANE_WORKERS=50
+      - REDIS_CLIENT=phpredis
+      - REDIS_PERSISTENT=true
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - CLICKHOUSE_HOST=clickhouse
+      - CLICKHOUSE_PORT=8123
+      - CLICKHOUSE_USERNAME=event_user
+      - CLICKHOUSE_PASSWORD=event_password
+      - CLICKHOUSE_DATABASE=events_db
+    depends_on:
+      - redis
+      - clickhouse
+
+  redis:
+    image: redis:alpine
+    container_name: laravel-event-ingestion-redis
+    ports:
+      - "6379:6379"
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest-alpine
+    container_name: laravel-event-ingestion-clickhouse
+    ports:
+      - "8123:8123" # HTTP port
+      - "9000:9000" # Native port
+    environment:
+      - CLICKHOUSE_USER=event_user
+      - CLICKHOUSE_PASSWORD=event_password
+      - CLICKHOUSE_DB=events_db
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: laravel-event-ingestion-worker
+    volumes:
+      - .:/app
+    command: ["php", "artisan", "events:flush"]
+    environment:
+      - APP_ENV=local
+      - APP_KEY=${APP_KEY}
+      - REDIS_CLIENT=phpredis
+      - REDIS_PERSISTENT=true
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - CLICKHOUSE_HOST=clickhouse
+      - CLICKHOUSE_PORT=8123
+      - CLICKHOUSE_USERNAME=event_user
+      - CLICKHOUSE_PASSWORD=event_password
+      - CLICKHOUSE_DATABASE=events_db
+    depends_on:
+      - redis
+      - clickhouse
