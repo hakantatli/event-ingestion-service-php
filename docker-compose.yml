@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   php-api:
@@ -6,35 +6,30 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: laravel-event-ingestion-api
-    volumes:
-      - .:/app
+    # volumes:
+    #   - .:/app
     ports:
-      - "8000:8000"
+      - "8080:8000"
+    command: ["php", "artisan", "octane:start", "--server=frankenphp", "--host=0.0.0.0", "--port=8000", "--workers=64"]
     environment:
       - APP_ENV=local
       - APP_KEY=${APP_KEY}
-      - APP_DEBUG=true
+      - APP_DEBUG=false
       - DB_CONNECTION=sqlite
+      # Cache: "array" driver is per-worker in-memory — zero network overhead.
+      # Metrics are already short-lived (10 s TTL), so array is perfectly fine.
+      - CACHE_STORE=array
+      # No sessions — this is a stateless JSON API.
+      - SESSION_DRIVER=array
       - OCTANE_SERVER=frankenphp
-      - OCTANE_WORKERS=50
-      - REDIS_CLIENT=phpredis
-      - REDIS_PERSISTENT=true
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
+      - OCTANE_WORKERS=64
       - CLICKHOUSE_HOST=clickhouse
       - CLICKHOUSE_PORT=8123
       - CLICKHOUSE_USERNAME=event_user
       - CLICKHOUSE_PASSWORD=event_password
       - CLICKHOUSE_DATABASE=events_db
     depends_on:
-      - redis
       - clickhouse
-
-  redis:
-    image: redis:alpine
-    container_name: laravel-event-ingestion-redis
-    ports:
-      - "6379:6379"
 
   clickhouse:
     image: clickhouse/clickhouse-server:latest-alpine
@@ -50,27 +45,3 @@ services:
       nofile:
         soft: 262144
         hard: 262144
-
-  worker:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: laravel-event-ingestion-worker
-    volumes:
-      - .:/app
-    command: ["php", "artisan", "events:flush"]
-    environment:
-      - APP_ENV=local
-      - APP_KEY=${APP_KEY}
-      - REDIS_CLIENT=phpredis
-      - REDIS_PERSISTENT=true
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - CLICKHOUSE_HOST=clickhouse
-      - CLICKHOUSE_PORT=8123
-      - CLICKHOUSE_USERNAME=event_user
-      - CLICKHOUSE_PASSWORD=event_password
-      - CLICKHOUSE_DATABASE=events_db
-    depends_on:
-      - redis
-      - clickhouse

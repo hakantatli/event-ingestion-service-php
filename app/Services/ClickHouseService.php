@@ -56,13 +56,13 @@ class ClickHouseService
 
         $query = "INSERT INTO {$table} FORMAT JSONEachRow";
 
+        // Synchronous insert: we already batch rows before calling this method,
+        // so async_insert is redundant and hides errors (it ACKs before data is written).
         $response = Http::withBasicAuth($this->username, $this->password)
             ->withOptions([
                 'query' => [
                     'database' => $this->database,
-                    'query' => $query,
-                    'async_insert' => 1,
-                    'wait_for_async_insert' => 0
+                    'query'    => $query,
                 ]
             ])
             ->withBody($payload, 'application/x-ndjson')

@@ -1,5 +1,5 @@
-# Use official FrankenPHP image with PHP 8.3
-FROM dunglas/frankenphp:php8.3-alpine
+# Use official FrankenPHP image with PHP 8.5
+FROM dunglas/frankenphp:php8.5-alpine
 
 # Set working directory
 WORKDIR /app
@@ -19,7 +19,8 @@ RUN apk add --no-cache \
     zip \
     && pecl install redis \
     && docker-php-ext-enable redis \
-    && apk del $PHPIZE_DEPS linux-headers
+    && apk del $PHPIZE_DEPS linux-headers \
+    && echo -e "opcache.enable_cli=1\nopcache.validate_timestamps=0" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini
 
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer

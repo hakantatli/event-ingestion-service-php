@@ -42,6 +42,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Octane Workers
+    |--------------------------------------------------------------------------
+    |
+    | This value controls the number of worker processes that will be spawned
+    | when using FrankenPHP or RoadRunner. Set OCTANE_WORKERS in your .env
+    | or docker-compose environment. "auto" defaults to the CPU core count.
+    |
+    */
+
+    'workers' => env('OCTANE_WORKERS', 'auto'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Force HTTPS
     |--------------------------------------------------------------------------
     |
@@ -132,6 +145,8 @@ return [
 
     'warm' => [
         ...Octane::defaultServicesToWarm(),
+        \App\Services\ClickHouseService::class,
+        \App\Services\EventIngestionService::class,
     ],
 
     'flush' => [
